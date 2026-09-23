@@ -4,29 +4,12 @@ import type {AvatarRenderer} from "./types";
 let sharedAudioContext: AudioContext | null = null;
 let activeSourceNode: AudioBufferSourceNode | null = null;
 
-/**
- * Ensures an active AudioContext instance is available and running.
- * Must be invoked within a user gesture (e.g., click/touch event handler)
- * to comply with browser autoplay security policies.
- */
 export async function ensureAudio(): Promise<AudioContext> {
     sharedAudioContext ??= new AudioContext();
     if (sharedAudioContext.state === "suspended") {
         await sharedAudioContext.resume();
     }
     return sharedAudioContext;
-}
-
-/**
- * Immediately stops the currently playing audio and cancels active speech playback.
- */
-export function stopSpeaking(): void {
-    try {
-        activeSourceNode?.stop();
-    } catch {
-        // Node has already ended or stopped; safe to ignore
-    }
-    activeSourceNode = null;
 }
 
 export async function playTrack(track: VisemeTrack, renderer: AvatarRenderer): Promise<void> {
@@ -80,4 +63,15 @@ export async function playTrack(track: VisemeTrack, renderer: AvatarRenderer): P
             activeSourceNode = null;
         }
     };
+}
+
+/**
+ * Immediately stops the currently playing audio and cancels active speech playback.
+ */
+export function stopSpeaking(): void {
+    try {
+        activeSourceNode?.stop();
+    } catch {
+    }
+    activeSourceNode = null;
 }
