@@ -1,122 +1,71 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import {useState} from 'react'
+import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
+
+// API KEY
+const speechKey = import.meta.env.VITE_AZURE_SPEECH_KEY;
+const speechRegion = import.meta.env.VITE_AZURE_SPEECH_REGION;
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [status, setStatus] = useState("待命");
+    const [visemeCount, setVisemeCount] = useState(0);
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    async function speak() {
+        setStatus("合成中…");
+        setVisemeCount(0);
 
-      <div className="ticks"></div>
+        const cfg = SpeechSDK.SpeechConfig.fromSubscription(speechKey, speechRegion);
+        cfg.speechSynthesisVoiceName = "zh-CN-XiaoxiaoNeural";
+        cfg.speechSynthesisOutputFormat =
+            SpeechSDK.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        // null = 不让 SDK 自己播，我们要拿字节（原因见 frontend.md §7.4）
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        const visemes: { t: number; id: number }[] = [];
+        synth.visemeReceived = (_s, e) => {
+            visemes.push({t: e.audioOffset / 10000, id: e.visemeId});
+        };
+
+        synth.speakTextAsync(
+            "我是一只小鸭子，呱呱呱~",
+            async (result) => {
+                synth.close();
+                if (result.reason !== SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                    setStatus("❌ " + result.errorDetails);
+                    return;
+                }
+
+                console.log("viseme 时间轴：", visemes);   // ← 打开 DevTools 看这个
+                setVisemeCount(visemes.length);
+
+                // 用户点击触发的调用栈里创建/恢复 AudioContext，绕过自动播放限制
+                const ctx = new AudioContext();
+                if (ctx.state === "suspended") await ctx.resume();
+
+                const buf = await ctx.decodeAudioData(result.audioData.slice(0));
+                const src = ctx.createBufferSource();
+                src.buffer = buf;
+                src.connect(ctx.destination);
+                src.start();
+
+                setStatus(`✅ 播放中（${buf.duration.toFixed(2)} 秒）`);
+            },
+            (err) => {
+                synth.close();
+                setStatus("❌ " + err);
+            },
+        );
+    }
+
+    return (
+        <div style={{padding: 24, fontFamily: "system-ui"}}>
+            <button onClick={speak} style={{fontSize: 18, padding: "10px 20px"}}>
+                🦆 让鸭子说话
+            </button>
+            <p>状态：{status}</p>
+            <p>收到 viseme 关键帧：<b>{visemeCount}</b> 个</p>
+        </div>
+    );
 }
 
 export default App
