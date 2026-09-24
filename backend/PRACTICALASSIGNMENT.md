@@ -37,21 +37,7 @@ You can record the video as a Zoom call with a PowerPoint presentation or as a "
 
 **NOTE:** All videos will be shared with the whole class, so make sure that it is something you are proud to showcase.
 
-*-- Do not forget to add your names to all the submitted files. --*
-
-### **Passing and Grading Criteria**
-
-The assignment corresponds to approximately 2 weeks of full-time work per member of the group (40 hours*2 week*4 students = 320 hours/project). To pass the assignment, your project should be complex enough to reflect the amount of time you are expected to devote to it. Below are some expectations:
-
-| **Area**                                 | **Passing grade requires:**                                                                                                                                          |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Name                                           | System should have a unique name (not necessary for OPTION 3)                                                                                                              |
-| Motivation(look into similar systems/theories) | Well-motivated on a real-world problem or application                                                                                                                      |
-| Implementation                                 | Good-to-excellent level of implementation and technical detail. Clearly reported use of tutorials and online code, but the majority is implemented as part of the project. |
-| Result                                         | The system works to a higher level of complexity with interesting results based on the input/motivation.                                                                   |
-| Documentation & video                          | Showcase all the required details in an easy-to-follow manner. Discusses motivation, implementation and the results to an appropriate level of detail and complexity.      |
-| Group work                                     | All members of the group need to actively**contribute equally to the project.***                                                                                     |
-|                                                |                                                                                                                                                                            |
+*-- Do not forget to add your names to all the submitted files. --*          |
 
 * **NOTE** : It's all allowed to divide the task based on your skills and preferences (coding, design, documentation, etc.). But everyone should be able to describe all parts (code, text, video, etc) of the submitted work.
 

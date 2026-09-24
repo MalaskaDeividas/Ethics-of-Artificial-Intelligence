@@ -1,10 +1,12 @@
-export const SUPPORTED_LANGUAGES = ["en-US", "sv-SE", "zh-CN"] as const;
+export const SUPPORTED_LANGUAGES = ["en-US", "sv-SE", "zh-CN", "ja-JP", "it-IT"] as const;
 export type Language = typeof SUPPORTED_LANGUAGES[number];
 
 export const VOICE_BY_LANGUAGE: Record<Language, string> = {
     "zh-CN": "zh-CN-XiaoxiaoNeural",
     "en-US": "en-US-AnaNeural",
     "sv-SE": "sv-SE-SofieNeural",
+    "ja-JP": "ja-JP-NanamiNeural",
+    "it-IT": "it-IT-ElsaNeural",
 };
 
 export interface AvatarReply {
