@@ -142,3 +142,142 @@ body {
         transform: rotate(5deg) translateY(0) scale(1);
     }
 }
+
+
+.terminal {
+
+    margin-top: 20px;
+
+    width: 100%;
+    max-width: 450px;
+
+    background: #fff8e7;
+
+    border: 4px solid #e6b65d;
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 8px 0 #ffffff;
+
+    overflow: hidden;
+
+    font-family:
+        "Comic Sans MS",
+        "Trebuchet MS",
+        sans-serif;
+
+}
+
+
+/* Header */
+
+.terminal-title {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    padding:14px 18px;
+
+    background:#ffd95a;
+
+    color:#6b4300;
+
+    font-weight:bold;
+
+    border-bottom:3px solid #d89b32;
+
+}
+
+
+.terminal-status {
+
+    color:#5a9e45;
+
+    font-size:12px;
+
+}
+
+
+/* Chat */
+
+.terminal-body {
+
+    height:220px;
+
+    padding:15px;
+
+    overflow-y:auto;
+
+    background:#fff4d6;
+
+}
+
+
+/* messages */
+
+.terminal-line {
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:10px 14px;
+
+    margin-bottom:12px;
+
+    box-shadow:
+        0 3px 0 rgba(0,0,0,0.08);
+
+    color:#594020;
+
+}
+
+
+/* input */
+
+.terminal-input {
+
+    display:flex;
+
+    gap:8px;
+
+    padding:12px;
+
+    background:#ffd95a;
+
+}
+
+
+.terminal-input span {
+
+    color:#d27b00;
+
+}
+
+
+.terminal-input input {
+
+    flex:1;
+
+    border:none;
+
+    border-radius:20px;
+
+    padding:10px 15px;
+
+    background:white;
+
+    color:#594020;
+
+    outline:none;
+
+}
+
+
+.terminal-input input::placeholder {
+
+    color:#c5a46b;
+
+}

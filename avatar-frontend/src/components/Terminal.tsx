@@ -2,18 +2,18 @@ import {useState} from "react";
 
 interface TerminalProps {
     logs: string[];
-    onSend: (message:string)=>void;
+    onSend: (message: string) => void;
 }
 
 export default function Terminal({
     logs,
     onSend
-}: TerminalProps){
+}: TerminalProps) {
 
-    const [input,setInput] = useState("");
+    const [input, setInput] = useState("");
 
-    function send(){
-        if(!input.trim()) return;
+    function submit() {
+        if (!input.trim()) return;
 
         onSend(input);
         setInput("");
@@ -22,21 +22,45 @@ export default function Terminal({
     return (
         <div className="terminal">
 
-            <div className="terminal-output">
-                {logs.map((line,i)=>(
-                    <div key={i}>{line}</div>
-                ))}
+            <div className="terminal-title">
+                <span>QUACK TERMINAL</span>
+                <span className="terminal-status">
+                    ONLINE
+                </span>
             </div>
 
-            <input
-                value={input}
-                onChange={e=>setInput(e.target.value)}
-                onKeyDown={e=>{
-                    if(e.key==="Enter") send();
-                }}
-                placeholder="Talk to Gemma..."
-            />
+
+            <div className="terminal-body">
+
+                {logs.map((log, index) => (
+                    <div 
+                        key={index}
+                        className="terminal-line"
+                    >
+                        {log}
+                    </div>
+                ))}
+
+            </div>
+
+
+            <div className="terminal-input">
+
+                <span>&gt;</span>
+
+                <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            submit();
+                        }
+                    }}
+                    placeholder="Talk to Quackie..."
+                />
+
+            </div>
 
         </div>
-    )
+    );
 }
