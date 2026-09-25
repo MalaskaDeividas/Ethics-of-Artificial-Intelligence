@@ -3,6 +3,7 @@ import tempfile
  
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import ollama
  
 from cyber_animals import perceive_food, make_duck
  
@@ -55,11 +56,38 @@ def analyze():
               f"-> duck says: {reaction['says']!r} [{reaction['language']}]")
         return jsonify({
             "text": reaction["says"],
-            "language": LANGUAGE_CODES.get(reaction["language"], DEFAULT_LANGUAGE),
+            "language": LANGUAGE_CODES.get(reaction["language"], DEFAULT_LANGUAGE), "debug": { "gemma_food": food["name"], "origin": food["origin"], "model": MODEL }
         
         })
     finally:
         os.unlink(tmp.name)
+ 
+ 
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.json
+
+    message = data.get("message")
+
+    if not message:
+        return jsonify({
+            "error": "NO_MESSAGE"
+        }), 400
+
+    response = ollama.chat(
+        model=MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": message
+            }
+        ]
+    )
+
+    return jsonify({
+        "text": response["message"]["content"]
+    })
+ 
  
  
 @app.route("/health")
