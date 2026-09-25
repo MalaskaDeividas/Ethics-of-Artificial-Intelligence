@@ -65,6 +65,7 @@ def analyze():
  
 @app.route("/api/chat", methods=["POST"])
 def chat():
+
     data = request.json
 
     message = data.get("message")
@@ -74,9 +75,18 @@ def chat():
             "error": "NO_MESSAGE"
         }), 400
 
+
     response = ollama.chat(
         model=MODEL,
         messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are Quackie, a cute friendly duck. "
+                    "Reply only with spoken dialogue. "
+                    "No actions, narration, or stage directions."
+                )
+            },
             {
                 "role": "user",
                 "content": message
@@ -84,8 +94,10 @@ def chat():
         ]
     )
 
+
     return jsonify({
-        "text": response["message"]["content"]
+        "text": response["message"]["content"],
+        "language": "en-US"
     })
  
  
