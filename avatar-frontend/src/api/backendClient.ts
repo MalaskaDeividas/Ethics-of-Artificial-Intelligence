@@ -27,3 +27,26 @@ export async function requestAvatarReply(action: UserAction): Promise<AvatarRepl
 
     return await response.json() as Promise<AvatarReply>;
 }
+
+export async function sendChatMessage(message: string) {
+    const response = await fetch(
+        `${endpoint}/api/chat`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                message,
+            }),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Chat failed");
+    }
+
+    return await response.json() as {
+        text: string;
+    };
+}

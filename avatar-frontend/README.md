@@ -20,9 +20,9 @@ Content type is `multipart/form-data`.
 
 **Fields**
 
-| Field   | Type   | Notes                    |
-|---------|--------|--------------------------|
-| `kind`  | string | `image`                  |
+| Field     | Type   | Notes                    |
+| --------- | ------ | ------------------------ |
+| `kind`  | string | `image`                |
 | `image` | file   | The image user uploaded. |
 
 **Response — `200 OK`, `application/json`**
