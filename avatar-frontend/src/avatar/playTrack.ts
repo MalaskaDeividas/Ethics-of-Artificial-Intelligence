@@ -1,28 +1,47 @@
 import type {VisemeTrack} from "../types/viseme";
-import type {AvatarRenderer} from "./types";
+import type {DuckRenderer} from "./types";
 
 let sharedAudioContext: AudioContext | null = null;
 let activeSourceNode: AudioBufferSourceNode | null = null;
 
-export async function ensureAudio(): Promise<AudioContext> {
-    sharedAudioContext ??= new AudioContext();
-    if (sharedAudioContext.state === "suspended") {
-        await sharedAudioContext.resume();
-    }
-    return sharedAudioContext;
+// Immediately stops the currently playing audio and cancels active speech playback.
+export function stopSpeaking(): void {
+    activeSourceNode?.stop();
+    activeSourceNode = null;
 }
 
-export async function playTrack(track: VisemeTrack, renderer: AvatarRenderer): Promise<void> {
-    const audioContext = await ensureAudio();
+export async function playTrack(track: VisemeTrack, renderer: DuckRenderer, signal?: AbortSignal): Promise<void> {
+    sharedAudioContext ??= new AudioContext();
+    const audioContext = sharedAudioContext;
     stopSpeaking();
 
     // Clone the underlying ArrayBuffer slice because decodeAudioData detaches the buffer it consumes
     const audioBuffer = await audioContext.decodeAudioData(track.audio.buffer.slice(0));
 
+    // Stopped while decoding: do not start talking after the user said stop
+    if (signal?.aborted) return;
+
     const sourceNode = audioContext.createBufferSource();
     sourceNode.buffer = audioBuffer;
     sourceNode.connect(audioContext.destination);
     activeSourceNode = sourceNode;
+
+    const stopOnAbort = () => sourceNode.stop();
+
+    const finished = new Promise<void>((resolve) => {
+        sourceNode.onended = () => {
+            if (activeSourceNode === sourceNode) {
+                renderer.setViseme(0, 1);
+                renderer.setSpeaking(false);
+                activeSourceNode = null;
+            }
+            // The signal lives for the whole conversation; do not let every
+            // line leave a listener behind on it
+            signal?.removeEventListener("abort", stopOnAbort);
+            resolve();
+        };
+    });
+    signal?.addEventListener("abort", stopOnAbort, {once: true});
 
     const playbackStartTime = audioContext.currentTime;
     sourceNode.start(playbackStartTime);
@@ -56,22 +75,5 @@ export async function playTrack(track: VisemeTrack, renderer: AvatarRenderer): P
     };
     animationFrameId = requestAnimationFrame(syncVisemeFrame);
 
-    sourceNode.onended = () => {
-        if (activeSourceNode === sourceNode) {
-            renderer.setViseme(0, 1);
-            renderer.setSpeaking(false);
-            activeSourceNode = null;
-        }
-    };
-}
-
-/**
- * Immediately stops the currently playing audio and cancels active speech playback.
- */
-export function stopSpeaking(): void {
-    try {
-        activeSourceNode?.stop();
-    } catch {
-    }
-    activeSourceNode = null;
+    return finished;
 }

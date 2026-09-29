@@ -1,17 +1,16 @@
 import {useEffect, useRef, useState} from "react";
-import type {AvatarRenderer} from "./types";
+import type {MountableRenderer} from "./types";
 
-
-export function useAvatarRenderer(factory: () => AvatarRenderer) {
-    const hostRef = useRef<HTMLDivElement>(null);
-    const rendererRef = useRef<AvatarRenderer | null>(null);
+export function useAvatarRenderer<Renderer extends MountableRenderer>(factory: () => Renderer) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const rendererRef = useRef<Renderer | null>(null);
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
         const renderer = factory();
 
-        renderer.mount(hostRef.current!).then(() => {
+        renderer.mount(containerRef.current!).then(() => {
             if (cancelled) {
                 renderer.dispose();
                 return;
@@ -29,5 +28,5 @@ export function useAvatarRenderer(factory: () => AvatarRenderer) {
         };
     }, []);
 
-    return {hostRef, rendererRef, ready};
+    return {containerRef, rendererRef, ready};
 }

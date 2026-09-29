@@ -1,6 +1,7 @@
-import {drawDuck, DUCK_W, DUCK_H, type DuckState} from "./characters/duck";
-import {VISEME_OPENNESS} from "./visemeMap";
-import type {AvatarRenderer} from "./types";
+import {drawDuck, DUCK_W, DUCK_H, type DuckState} from "../characters/duck.ts";
+import {VISEME_OPENNESS} from "../visemeMap.ts";
+import type {DuckRenderer} from "../types.ts";
+import {BaseCanvasRenderer} from "./BaseCanvasRenderer.ts";
 
 /**
  * Exponential smoothing: smoothly pulls current value towards the target each frame.
@@ -8,13 +9,7 @@ import type {AvatarRenderer} from "./types";
 const smoothTowards = (current: number, target: number, factor: number): number =>
     current + (target - current) * factor;
 
-export class Avatar2D implements AvatarRenderer {
-    private canvas!: HTMLCanvasElement;
-    private ctx!: CanvasRenderingContext2D;
-    private animationFrameId = 0;
-    private startTimeMs = performance.now();
-    private resizeObserver?: ResizeObserver;
-
+export class Duck2D extends BaseCanvasRenderer implements DuckRenderer {
     /** Current visual state, continuously smoothed towards target values each frame */
     private currentState: DuckState = {open: 0, blink: 0, tongue: 0, breathe: 0};
 
@@ -24,37 +19,35 @@ export class Avatar2D implements AvatarRenderer {
     private blinkEndTime = 0;
     private nextBlinkTime = 2 + Math.random() * 3;
 
-    async mount(host: HTMLElement): Promise<void> {
-        this.canvas = document.createElement("canvas");
-        this.canvas.style.width = "100%";
-        this.canvas.style.height = "100%";
-        this.canvas.style.display = "block";
-        host.appendChild(this.canvas);
+    // async mount(host: HTMLElement): Promise<void> {
+    //     this.canvas = document.createElement("canvas");
+    //     this.canvas.style.width = "100%";
+    //     this.canvas.style.height = "100%";
+    //     this.canvas.style.display = "block";
+    //     host.appendChild(this.canvas);
+    //
+    //     this.ctx = this.canvas.getContext("2d")!;
+    //     this.resize();
+    //
+    //     // Keep canvas backing store responsive to host container resizing
+    //     this.resizeObserver = new ResizeObserver(() => this.resize());
+    //     this.resizeObserver.observe(host);
+    //
+    //     this.loop();
+    // }
 
-        this.ctx = this.canvas.getContext("2d")!;
-        this.resize();
-
-        // Keep canvas backing store responsive to host container resizing
-        this.resizeObserver = new ResizeObserver(() => this.resize());
-        this.resizeObserver.observe(host);
-
-        this.loop();
-    }
-
-    private resize(): void {
-        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-        const bounds = this.canvas.getBoundingClientRect();
-        if (bounds.width === 0 || bounds.height === 0) return;
-
-        this.canvas.width = Math.round(bounds.width * pixelRatio);
-        this.canvas.height = Math.round(bounds.height * pixelRatio);
-    }
+    // private resize(): void {
+    //     const pixelRatio = Math.min(window.devicePixelRatio, 2);
+    //     const bounds = this.canvas.getBoundingClientRect();
+    //     this.canvas.width = Math.round(bounds.width * pixelRatio);
+    //     this.canvas.height = Math.round(bounds.height * pixelRatio);
+    // }
 
     /**
      * Updates target mouth openness based on the incoming viseme ID.
      */
     setViseme(id: number): void {
-        this.targetMouthOpen = VISEME_OPENNESS[id] ?? 0;
+        this.targetMouthOpen = VISEME_OPENNESS[id];
     }
 
     /**
@@ -67,7 +60,7 @@ export class Avatar2D implements AvatarRenderer {
         }
     }
 
-    private loop = (): void => {
+    loop = (): void => {
         const elapsedTimeSec = (performance.now() - this.startTimeMs) / 1000;
 
         // 1. Mouth openness smoothing for continuous lip-sync transitions
@@ -113,9 +106,9 @@ export class Avatar2D implements AvatarRenderer {
         ctx.restore();
     }
 
-    dispose(): void {
-        cancelAnimationFrame(this.animationFrameId);
-        this.resizeObserver?.disconnect();
-        this.canvas?.remove();
-    }
+    // dispose(): void {
+    //     cancelAnimationFrame(this.animationFrameId);
+    //     this.resizeObserver.disconnect();
+    //     this.canvas.remove();
+    // }
 }

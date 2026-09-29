@@ -1,3 +1,5 @@
+import {configCanvasContext} from "../../utils/helper.ts";
+
 export interface DuckState {
     /** Beak opening amount: 0 to 1 */
     open: number;
@@ -28,10 +30,10 @@ export const DUCK_H = 420;
 
 export function drawDuck(
     ctx: CanvasRenderingContext2D,
-    state: Partial<DuckState>,
+    state: DuckState,
     colors: DuckColors = DUCK_COLORS,
 ) {
-    const {open = 0, blink = 0, tongue = 0, breathe = 0} = state;
+    const {open, blink, tongue, breathe} = state;
 
     // Base layout coordinates
     const centerX = DUCK_W / 2;
@@ -39,21 +41,7 @@ export function drawDuck(
     const headRadius = 104;
     const bodyCenterY = 306 + breathe * 2;  // Subtle body breathing movement
 
-    ctx.lineWidth = 5;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-
-    // Helper: Apply fill and stroke styles
-    const applyPaint = (fillColor?: string | null, strokeColor?: string | null) => {
-        if (fillColor) {
-            ctx.fillStyle = fillColor;
-            ctx.fill();
-        }
-        if (strokeColor) {
-            ctx.strokeStyle = strokeColor;
-            ctx.stroke();
-        }
-    };
+    const applyPaint = configCanvasContext(ctx)
 
     // Helper: Trace an ellipse path
     const traceEllipse = (

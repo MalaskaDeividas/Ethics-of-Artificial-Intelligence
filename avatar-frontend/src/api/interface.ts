@@ -1,22 +1,13 @@
-export const SUPPORTED_LANGUAGES = ["en-US", "sv-SE", "zh-CN", "ja-JP", "it-IT"] as const;
-export type Language = typeof SUPPORTED_LANGUAGES[number];
-
-export const VOICE_BY_LANGUAGE: Record<Language, string> = {
-    "zh-CN": "zh-CN-XiaoxiaoNeural",
-    "en-US": "en-US-AnaNeural",
-    "sv-SE": "sv-SE-SofieNeural",
-    "ja-JP": "ja-JP-NanamiNeural",
-    "it-IT": "it-IT-ElsaNeural",
-};
-
-export interface AvatarReply {
-    /** The sentence the avatar should speak. */
+/** Body of a successful POST /api/describe. */
+export interface DescribeResponse {
     text: string;
-    /** Language of `text`, which decides the voice used for synthesis. */
-    language: Language;
 }
 
-export type UserAction = { kind: "image"; file: File }
+/** Body of a successful POST /api/draw. */
+export interface DrawRequest {
+    /** Exactly what the duck just said. */
+    text: string;
+}
 
 export class BackendError extends Error {
     readonly code: string;
