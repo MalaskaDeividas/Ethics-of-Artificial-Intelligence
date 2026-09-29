@@ -65,8 +65,9 @@ export function App() {
 
             <header className="card__header">
                 <h1 className="card__title">
-                    {UI_STRINGS.title}<span>{UI_STRINGS.tagline}</span>
+                    {UI_STRINGS.tagline}
                 </h1>
+
                 {conversation.round > 0 && (
                     <span className="card__round">{UI_STRINGS.round(conversation.round)}</span>
                 )}
