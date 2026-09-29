@@ -2,13 +2,14 @@ from mcp.server.mcpserver import MCPServer
 import requests
 import httpx2
 import trafilatura as tr
+from config import *
 
 mcp = MCPServer("search engine")
 
 def mcp_search_engine(query: str):
     # this website provide better search engine and may have free amount of money. https://serpapi.com/
-    base_url = "http://192.168.50.230:5679"
-    r = requests.get(base_url, params={"q": query, "format": "json", "pageno": 1, "engines": "360search"}, timeout=10)
+    base_url = search_server_url
+    r = requests.get(base_url, params={"q": query, "format": "json", "pageno": 1, "engines": engines}, timeout=10)
     data = r.json().get("results",[])
     print(data)
     return data

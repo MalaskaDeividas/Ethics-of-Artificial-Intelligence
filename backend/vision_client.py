@@ -3,27 +3,24 @@ import base64
 from openai import OpenAI
 from search_server import tools, search_engine, get_content
 import json
-from pathlib import Path
-
-"TODO: base on front GUI change this path"
-image_path = Path(__file__).parent / "xiaolongbao.png"
+from config import *
 
 def encode_image(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
 
-def model():
+def chat_model(image_url: str) -> str:
     # change this to LLM local url
-    base_url = "http://192.168.50.230:1234/v1"
+    base_url = chat_llm_url
     # if you have api key then change it, otherwise keep it still
-    api_key ="lmstudio"
+    api_key = text_api_key
 
     client = OpenAI(
         base_url=base_url,
         api_key=api_key,
     )
 
-    model="google/gemma-4-26b-a4b-qat"
+    model=MODEL
     messages=[{
         "role": "user",
         "content": [
@@ -31,7 +28,8 @@ def model():
             finally, search the recipe of this dish and tell me how to cook it in it's language."},
             {
                 "type": "image_url",
-                "image_url": {"url": f"data:image/png;base64,{encode_image(image_path)}"},
+                # "image_url": {"url": f"data:image/png;base64,{encode_image(image_paths)}"},
+                "image_url": {"url": image_url},
             },
         ],
     }]
@@ -75,6 +73,34 @@ def model():
         tools=tools,
     )
 
-    print(response.choices[0].message.content)
+    # print(response.choices[0].message.content)
 
-model()
+    return response.choices[0].message.content
+
+
+def image_model(prompt:str, turn: int = 0) -> object:
+    base_url = image_llm_url
+    api_key = image_api_key
+
+    client = OpenAI(
+        base_url=base_url,
+        api_key=api_key,
+    )
+
+    prompt = "" + prompt + "\n\nPlease generate an image based on the above prompt."
+
+    response = client.images.generate(
+        model = image_model_name,
+        prompt = prompt,
+        size = size,
+        response_format = response_format,
+    )
+
+    with open(image_dir / f"generated_{turn}.png", "wb") as f:
+        f.write(base64.b64decode(response.data[0].b64_json))
+
+    # print(repr(image_model_name), repr(prompt), repr(size), repr(response_format))
+
+    return response.data[0].b64_json
+
+# image_model(prompt="A beautiful landscape with mountains and a river, in the style of a watercolor painting.")
