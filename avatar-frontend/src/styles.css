@@ -2,6 +2,8 @@
     --duck-yellow: #ffd24a;
     --duck-orange: #f2a03d;
     --duck-orange-deep: #c2761c;
+    --rabbit-pink: #ffbfcb;
+    --rabbit-pink-deep: #e98aa0;
 
     --ink: #3a332c;
     --ink-soft: #8d8175;
@@ -11,7 +13,11 @@
     --wash-top: #fdf7ec;
     --wash-bottom: #f4eee2;
     --sky: #eaf4fb;
+    --floor: #dfeaf2;
     --line: #ece2d1;
+    --wood: #d8b48a;
+    --wood-deep: #b68c5e;
+    --pencil: #9b8f82;
 
     --danger: #c0563e;
 
@@ -22,8 +28,10 @@
     0 12px 32px -8px rgba(120, 90, 40, .14);
     --shadow-lift: 0 2px 4px rgba(80, 60, 30, .06),
     0 22px 48px -10px rgba(120, 90, 40, .22);
+    --shadow-photo: 0 8px 18px -6px rgba(120, 90, 40, .34);
 
     --ease: cubic-bezier(.22, .61, .36, 1);
+    --ease-in: cubic-bezier(.55, 0, .75, .2);
 }
 
 * {
@@ -43,13 +51,23 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * React's mount point is the body's actual grid item. Centred, it would shrink
+ * to fit its content, so the card's width would follow the length of whatever
+ * the subtitle happens to say. Make it full width and centre the card instead.
+ */
+#root {
+    width: 100%;
+}
+
 /* ── Card ─────────────────────────────────────────────────────────────── */
 
 .card {
     position: relative;
     width: 100%;
-    max-width: 640px;
-    padding: 20px 24px 26px;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 20px 24px 22px;
 
     background: var(--paper);
     border-radius: var(--radius-card);
@@ -77,7 +95,8 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 6px;
+    min-height: 28px;
+    margin-bottom: 8px;
 }
 
 .card__title {
@@ -93,52 +112,486 @@ body {
     margin-left: 8px;
 }
 
-/* ── Stage: the duck lives here ───────────────────────────────────────── */
+.card__round {
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    background: var(--wash-bottom);
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Stage: duck, the duck's picture, the rabbit's easel, rabbit ─────────── */
 
 .stage {
-    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-areas: "duck pile easel rabbit";
+    align-items: end;
+    column-gap: 14px;
     margin: 4px 0 18px;
+    padding: 30px 18px 10px;
     border-radius: 22px;
-    background: radial-gradient(120% 90% at 50% 20%, #ffffff 0%, var(--sky) 72%);
-    overflow: visible;
+
+    /* A floor for the two to stand on, under a soft sky */
+    background: linear-gradient(to top, var(--floor) 0, var(--floor) 17%, transparent 17%),
+    radial-gradient(120% 90% at 50% 12%, #ffffff 0%, var(--sky) 72%);
 }
 
-.stage__canvas {
-    width: 100%;
-    aspect-ratio: 1 / 1;
+.stage__actor {
+    position: relative;
+    min-width: 0;
 }
 
-/* Uploaded picture, tucked into the corner like a polaroid the duck is holding */
-.snapshot {
+/*
+ * Out of the flow, so the canvas's own pixel size can never feed back into the
+ * layout: the renderer sizes the canvas from its box, and the box must come
+ * from the grid alone, or the two chase each other.
+ */
+.stage__actor > canvas {
     position: absolute;
-    right: -6px;
-    bottom: -10px;
-    width: 150px;
-    padding: 5px 5px 14px;
+    inset: 0;
+}
+
+.stage__actor--duck {
+    grid-area: duck;
+    aspect-ratio: 420 / 420;
+}
+
+/* Taller than the duck's box because upright ears need headroom (see rabbit.ts) */
+.stage__actor--rabbit {
+    grid-area: rabbit;
+    aspect-ratio: 420 / 540;
+}
+
+/* ── The duck's pile of pictures ──────────────────────────────────────── */
+
+.pile {
+    grid-area: pile;
+    position: relative;
+    align-self: center;
+    justify-self: center;
+    width: 90%;
+    aspect-ratio: 5 / 6;
+}
+
+.pile__placeholder {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    padding: 16px;
+    border: 2px dashed var(--ink-faint);
+    border-radius: 8px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    text-align: center;
+}
+
+.pile__photo {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 7px 7px 0;
 
     background: var(--paper);
-    border-radius: 5px;
-    box-shadow: 0 6px 16px -4px rgba(120, 90, 40, .34);
-    transform: rotate(5deg);
-
-    animation: snapshot-in .45s var(--ease) both;
+    border-radius: 4px;
+    box-shadow: var(--shadow-photo);
+    transition: transform .7s var(--ease), opacity .7s var(--ease), box-shadow .3s var(--ease);
 }
 
-.snapshot img {
+.pile__photo img {
     display: block;
     width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 2px;
+    background: var(--wash-bottom);
 }
 
-@keyframes snapshot-in {
+.pile__photo figcaption {
+    padding: 7px 4px;
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Current picture on top, older ones fanned out underneath */
+.pile__photo[data-depth="0"] {
+    z-index: 3;
+    transform: rotate(-2.5deg);
+}
+
+.pile__photo[data-depth="1"] {
+    z-index: 2;
+    transform: translate(9px, 5px) rotate(4deg);
+}
+
+.pile__photo[data-depth="2"] {
+    z-index: 1;
+    transform: translate(-10px, 9px) rotate(-8deg);
+    opacity: .85;
+}
+
+/* A strip of tape holds the current one in place */
+.pile__photo[data-depth="0"]::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 64px;
+    height: 20px;
+    margin-left: -32px;
+    background: rgba(255, 210, 74, .55);
+    transform: rotate(3deg);
+}
+
+/* While the duck is talking about the top picture, give it a gentle glow */
+.stage[data-stage="speaking"] .pile__photo[data-depth="0"] {
+    box-shadow: var(--shadow-photo), 0 0 0 3px rgba(255, 210, 74, .75);
+}
+
+/* Entrances: the user's picture drops in; a drawing arrives from the easel on the right */
+.pile__photo[data-depth="0"][data-origin="upload"] {
+    animation: photo-drop .55s var(--ease) both;
+}
+
+.pile__photo[data-depth="0"][data-origin="rabbit"] {
+    animation: photo-arrive .8s var(--ease) both;
+}
+
+@keyframes photo-drop {
     from {
         opacity: 0;
-        transform: rotate(-4deg) translateY(14px) scale(.9);
+        transform: translateY(-22px) rotate(-8deg) scale(.94);
+    }
+}
+
+@keyframes photo-arrive {
+    from {
+        opacity: 0;
+        transform: translateX(95%) rotate(7deg) scale(.96);
+    }
+    35% {
+        opacity: 1;
+    }
+}
+
+/* ── The rabbit's easel ───────────────────────────────────────────────── */
+
+.easel {
+    grid-area: easel;
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    padding: 0 5%;
+}
+
+/* Two legs from behind the canvas down to the floor */
+.easel::before,
+.easel::after {
+    content: "";
+    position: absolute;
+    top: 45%;
+    bottom: 0;
+    width: 7px;
+    border-radius: 4px;
+    background: var(--wood-deep);
+}
+
+.easel::before {
+    left: 24%;
+    transform: rotate(9deg);
+}
+
+.easel::after {
+    right: 24%;
+    transform: rotate(-9deg);
+}
+
+.easel__canvas {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+
+    background: #fffefb;
+    border: 8px solid var(--wood);
+    border-radius: 3px;
+    box-shadow: var(--shadow-photo);
+    transition: box-shadow .3s var(--ease);
+}
+
+.stage[data-stage="drawing"] .easel__canvas,
+.stage[data-stage="showing"] .easel__canvas {
+    box-shadow: var(--shadow-photo), 0 0 0 3px rgba(255, 191, 203, .9);
+}
+
+.easel__drawing {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: paint-on 1.1s var(--ease) both;
+}
+
+/* Once the duck takes it, the drawing slides off towards the pile */
+.easel__drawing[data-handed-over="true"] {
+    animation: slide-to-duck .5s var(--ease-in) forwards;
+}
+
+@keyframes paint-on {
+    from {
+        clip-path: inset(0 100% 0 0);
+        filter: saturate(.4) brightness(1.1);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+        filter: none;
+    }
+}
+
+@keyframes slide-to-duck {
+    to {
+        opacity: 0;
+        transform: translateX(-80%) rotate(-6deg) scale(.96);
+    }
+}
+
+.easel__scribble {
+    position: absolute;
+    inset: 12%;
+    fill: none;
+    stroke: var(--pencil);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.easel__scribble path {
+    stroke-dasharray: 140;
+    stroke-dashoffset: 140;
+    animation: sketch 2.4s ease-in-out infinite;
+}
+
+.easel__scribble path:nth-child(2) {
+    animation-delay: .5s;
+}
+
+.easel__scribble path:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes sketch {
+    0% {
+        stroke-dashoffset: 140;
+        opacity: 1;
+    }
+    55% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+    85%, 100% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+    }
+}
+
+/* A little label hung between the legs, so the legs never run through the text */
+.easel__caption {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    margin-top: 10px;
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 253, 248, .92);
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.stage[data-stage="drawing"] .easel__caption {
+    animation: pulse-text 1.15s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+    50% {
+        opacity: .45;
+    }
+}
+
+/* ── Subtitle: what the duck is saying or doing ───────────────────────── */
+
+.subtitle {
+    display: flex;
+    gap: 10px;
+    min-height: 52px;
+    max-width: 760px;
+    margin: 0 auto;
+    font-size: 15.5px;
+    line-height: 1.55;
+}
+
+.subtitle__dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-top: 9px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    transition: background .3s var(--ease);
+}
+
+.subtitle[data-busy="true"] .subtitle__dot {
+    background: var(--duck-orange);
+    animation: pulse 1.15s ease-in-out infinite;
+}
+
+.subtitle[data-tone="speech"] .subtitle__dot {
+    background: var(--duck-yellow);
+}
+
+.subtitle[data-tone="error"] .subtitle__dot {
+    background: var(--danger);
+}
+
+.subtitle__text {
+    margin: 0;
+    animation: text-in .35s var(--ease) both;
+}
+
+.subtitle[data-tone="hint"] .subtitle__text {
+    color: var(--ink-soft);
+}
+
+.subtitle[data-tone="error"] .subtitle__text {
+    color: var(--danger);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: .45;
+        transform: scale(.72);
+    }
+}
+
+@keyframes text-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
     }
     to {
         opacity: 1;
-        transform: rotate(5deg) translateY(0) scale(1);
+        transform: none;
+    }
+}
+
+/* ── Footer action ────────────────────────────────────────────────────── */
+
+.actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.actions__primary {
+    min-width: 240px;
+    padding: 11px 22px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--duck-yellow);
+    color: #4a3410;
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .18s var(--ease), background .18s var(--ease), opacity .18s var(--ease);
+}
+
+.actions__primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #ffdc6e;
+}
+
+.actions__primary:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+/* Temporary control for the MVP: the relay runs until this is pressed */
+.actions__stop {
+    min-width: 240px;
+    padding: 10px 22px;
+    border: 1px solid var(--ink-faint);
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.actions__stop:hover {
+    border-color: var(--ink-soft);
+}
+
+/* Hidden but still reachable by assistive tech and by label clicks */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ── Narrow screens: pictures on top, the two characters below ─────────── */
+
+@media (max-width: 720px) {
+    .card {
+        padding: 16px 16px 18px;
+    }
+
+    .stage {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "pile easel"
+            "duck rabbit";
+        row-gap: 18px;
+        column-gap: 16px;
+        padding: 24px 14px 8px;
+    }
+
+    .easel::before,
+    .easel::after {
+        display: none;
+    }
+
+    .actions__primary,
+    .actions__stop {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
     }
 }

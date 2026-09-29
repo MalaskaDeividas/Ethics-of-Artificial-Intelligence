@@ -5,7 +5,6 @@ export interface VisemeFrame {
 }
 
 export interface VisemeTrack {
-    language: string;
     text: string;
     audio: { buffer: ArrayBuffer; durationMs: number };
     visemes: VisemeFrame[];
