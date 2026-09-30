@@ -1,12 +1,12 @@
 from pathlib import Path
 
 # chat model configuration
-MODEL = "google/gemma-4-26b-a4b-qat"
-chat_llm_url = "http://192.168.50.230:1234/v1"
+MODEL = "llava"
+chat_llm_url = "http://localhost:11434/v1"
 text_api_key = "lmstudio"
 
 # image model configuration
-image_llm_url = "http://192.168.50.230:1235/v1"
+image_llm_url = "http://localhost:1235/v1"
 image_api_key = "none"
 image_model_name = "abenzerps/Qwen-Image-2.1-Uncensored-GGUF"
 size = "1024x1024"
@@ -22,5 +22,5 @@ image_paths = sorted(
 )
 
 # search server configuration
-search_server_url = "http://192.168.50.230:5679"
+search_server_url = "http://localhost:5679"
 engines = "bing"

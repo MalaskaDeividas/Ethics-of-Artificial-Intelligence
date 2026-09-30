@@ -20,9 +20,7 @@ export type ConversationEvent =
 
 export interface ConversationHooks {
     signal: AbortSignal;
-
     speak(track: VisemeTrack): Promise<void>;
-
     report(event: ConversationEvent): void;
 }
 
@@ -35,42 +33,58 @@ interface PreparedTurn {
 
 /**
  * Ask the backend what the picture looks like, then get the words ready to say.
- *
- * The drawing request goes out the moment the words exist, rather than after
- * the duck has finished saying them. Image generation is the slowest step in
- * the whole relay, and this way most of it happens while the duck is talking.
+ * The drawing request fires immediately so the rabbit paints while the duck
+ * speaks and continues working until generation completes.
  */
 async function prepareTurn(picture: Picture, signal: AbortSignal): Promise<PreparedTurn> {
     const line = await describePicture(picture.blob, signal);
 
+    // Rabbit begins painting immediately in the background
     const drawing = drawPicture(line, signal);
-    drawing.catch(() => {
+    drawing.catch((err) => {
+        console.error("[Rabbit Draw Error]:", err);
     });
 
-    const track = await synthesizeSpeech(line);
+    let track: VisemeTrack = {
+        text: line,
+        visemes: [],
+        audio: {buffer: new ArrayBuffer(0), durationMs: 2500},
+    };
+
+    try {
+        track = await synthesizeSpeech(line);
+    } catch (err) {
+        console.warn("Speech synthesis skipped or failed, using fallback:", err);
+    }
+
     return {line, track, drawing};
 }
 
-export async function runConversation(firstPicture: Picture, {
-    signal,
-    speak,
-    report
-}: ConversationHooks): Promise<void> {
+export async function runConversation(
+    firstPicture: Picture,
+    {signal, speak, report}: ConversationHooks,
+): Promise<void> {
     let nextTurn = prepareTurn(firstPicture, signal);
 
-    for (; ;) {
-        // 1. Looking: the backend describes the picture and the words are synthesized.
-        //    From the second round on, most of this already happened while the
-        //    previous drawing was on show, so it is usually just the minimum wait.
-        const [{line, track, drawing}] = await Promise.all([nextTurn, delay(MIN_LOOKING_MS, signal)]);
+    for (;;) {
+        // 1. Looking: backend describes picture and duck gets ready
+        const [{line, track, drawing}] = await Promise.all([
+            nextTurn,
+            delay(MIN_LOOKING_MS, signal),
+        ]);
         signal.throwIfAborted();
 
-        // 2. Speaking: the duck talks and the rabbit listens, ears up
+        // 2. Speaking: duck talks, rabbit listens with ears perked
         report({type: "speaking", line});
-        await speak(track);
+        try {
+            await speak(track);
+        } catch (e) {
+            console.warn("Audio playback failed, proceeding:", e);
+            await delay(1500, signal);
+        }
         signal.throwIfAborted();
 
-        // 3. Drawing: the duck is quiet, the rabbit's ears drop and it gets to work
+        // 3. Drawing: duck goes quiet, rabbit stays drawing until the image finishes
         report({type: "drawing"});
         const [drawn] = await Promise.all([drawing, delay(MIN_DRAWING_MS, signal)]);
         signal.throwIfAborted();
@@ -78,14 +92,12 @@ export async function runConversation(firstPicture: Picture, {
         const newPicture = createPicture(drawn, "rabbit");
         report({type: "drawingFinished", picture: newPicture});
 
-        // 4. Showing: the drawing sits next to the picture that inspired it,
-        //    while the duck quietly starts studying it for the next round
+        // 4. Showing: display the finished drawing on the easel
         nextTurn = prepareTurn(newPicture, signal);
-        nextTurn.catch(() => {
-        });
+        nextTurn.catch(() => {});
         await delay(SHOWING_MS, signal);
 
-        // 5. The duck takes the drawing, and round and round it goes
+        // 5. Handover: duck takes the rabbit's drawing as the input for the next round
         report({type: "handedOver"});
     }
 }
