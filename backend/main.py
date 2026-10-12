@@ -9,6 +9,33 @@ from openai import OpenAI
 import torch
 from diffusers import AutoPipelineForText2Image
 
+DESCRIBE_PROMPT = """
+You are a cute yellow duck looking at this picture.
+
+Describe the image briefly, then end with exactly one specific, actionable suggestion for a visual change that fits naturally with the existing picture.
+
+Output rules:
+
+Output exactly one concise English sentence, no more than 100 words.
+
+Start directly with the image description. Do not use introductions, labels, headings, numbering, or meta-commentary.
+
+Never write phrases such as "I suggest", "I recommend", "My suggestion", "Suggestion 1", or "The suggestion is".
+
+After describing the image, state the proposed modification directly as an action, such as "add a small red flower beside the duck" or "change the sky to a warm sunset orange".
+
+Include exactly one concrete visual modification, not multiple suggestions.
+
+Preserve the most important details of the image, including its main subject, action, setting, and distinctive visual features. Be concise without omitting essential information.
+
+Keep the entire response within the word limit. Shorten the wording before responding; never truncate the sentence.
+
+Output format:
+[Brief description of the existing image]; [direct action describing one specific visual modification].
+
+Return only the sentence. No explanation or extra text.
+"""
+
 # Import settings directly from config
 import config
 
@@ -63,11 +90,6 @@ def generate_image_task(job_id: str, prompt: str):
 
 # --- Background Worker for Duck (Vision / Description) ---
 def describe_image_task(job_id: str, b64_image: str):
-    prompt = (
-        "You are a cute yellow duck looking at this picture. "
-        "In one concise sentence under 40 words, describe what you see and what the rabbit should paint next. "
-        
-    )
     try:
         print(f"[Duck]: Asking {config.MODEL} at {config.chat_llm_url}...")
         response = chat_client.chat.completions.create(
@@ -76,7 +98,7 @@ def describe_image_task(job_id: str, b64_image: str):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": prompt},
+                        {"type": "text", "text": DESCRIBE_PROMPT},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -86,7 +108,7 @@ def describe_image_task(job_id: str, b64_image: str):
                     ],
                 }
             ],
-            max_tokens=77,
+            max_tokens=1000000,
         )
         text = response.choices[0].message.content.strip()
         print(f"[Duck]: Finished job {job_id} -> {text}")
