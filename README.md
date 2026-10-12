@@ -10,6 +10,8 @@ In this README you will find two main folders.
 *>* avatar-frontend
 *>* backend
 
+![Demo](demo.png)
+
 These two files makeup the whole project.
 
 The requirements to run the project is:
