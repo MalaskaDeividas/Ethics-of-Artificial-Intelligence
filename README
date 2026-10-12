@@ -1,0 +1,64 @@
+
+# Project Duck Rabit
+
+This is the Duck Rabit Art project.
+It is an Agent to Agent pipeline of creativity, where a Duck describes and a Rabbit listens and draws. This pipeline is meant as an artistic show to inspire people of all ages but primary audience is kids, to inspire them in art, technology and AI. 
+
+
+In this README you will find two main folders.
+
+*>* avatar-frontend
+*>* backend
+
+These two files makeup the whole project.
+
+The requirements to run the project is:
+
+Node.js which can be installed through (this is for the frontend) - https://nodejs.org/en
+
+After installing Node.js enter /avatar-front and run npm install and run npm run dev to start the frontend server. 
+Press or enter http://localhost:5173/ in your prefered browser.
+
+
+After that proceed with: 
+
+Python 3.14 which can be installed from (this is mostly for the backend code) - https://www.python.org/downloads/release/python-3140/
+
+Once python installed, be inside /backend and run pip install uv and after that run uv sync in the same folder.
+
+Go on to install: 
+
+Ollama which can be installed through - https://ollama.com/download
+
+Then the ollama model used can be installed with this command - Ollama pull llava.
+
+After this you can enter /backend and run "uv python main.py" 
+
+
+At this point you should now have the backend and frontend running
+(uv python main.py + npm run dev)
+and this webadress http://localhost:5173/ should show you: 
+
+
+
+To start the automatic AI pipeline, press the button "Choose a picture" at the bottom of the screen, and select an image of your choosing.
+
+
+# Tools and libraries used
+Used libraries are located in:
+For the backend it's in pyproject.toml
+For the avatar-frontend it's package.json
+
+Gemini, Cloud for debugging.
+Cloud for SVG help.
+
+
+
+
+# Refrences
+
+[1] Google, "Gemini (Large Language Model)," 2026. [Online]. Available: https://gemini.google.com. [Accessed: Oct. 12, 2026].
+
+[2] Anthropic, "Claude (Large Language Model)," 2026. [Online]. Available: https://claude.ai. [Accessed: Oct. 12, 2026].
+
+[3] Ollama, "Ollama (Version 0.5) [Software]," 2026. [Online]. Available: https://ollama.com. [Accessed: Oct. 12, 2026].
